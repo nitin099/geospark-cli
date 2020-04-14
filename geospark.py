@@ -105,6 +105,16 @@ def login():
     return None
 
 
+def create_project():
+    name = click.prompt("Enter project name", type=str)
+    data = {'name': name}
+    resp = process_requests("POST", "/projects/", data=data)
+    project = resp.get('data')
+    proj_name = project['name']
+    print_purple(f'{proj_name} project created successfully')
+    return
+
+
 @geospark_cli.command()
 def projects():
     """
@@ -117,7 +127,8 @@ def projects():
             return
 
         if not resp['data']:
-            click.echo("No projects found")
+            click.echo("No projects found.\nCreate a project.")
+            create_project()
             return
 
         for num, project in enumerate(resp['data']):
@@ -148,12 +159,7 @@ def projects():
         inp = click.prompt('What to do?  \n 1 Modify \n 2 Delete', type=int)
 
         if inp == 0:
-            name = click.prompt("Enter project name", type=str)
-            data = {'name': name}
-            resp = process_requests("POST", "/projects/", data=data)
-            project = resp.get('data')
-            proj_name = project['name']
-            print_purple(f'{proj_name} project created successfully')
+            create_project()
 
         elif inp == 1:
             name = click.prompt("Update project name", type=str)
@@ -165,11 +171,11 @@ def projects():
             print_purple(f'{proj_name} project updated successfully')
 
         elif inp == 2:
-            proj_name = project_dict[num]['Name']
+            proj_name = project_dict[proj_num]['Name']
             confirm = click.prompt(f"Are you sure (Y or N) project {proj_name}", type=str)
             if confirm.lower() == 'n':
                 return
-            proj_id = project_dict[num]['id']
+            proj_id = project_dict[proj_num]['id']
             resp = process_requests("DELETE", f"/projects/{proj_id}/")
             print_purple(f'{proj_name} project deleted successfully')
         else:
